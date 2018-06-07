@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="shared/jquery.js" type="text/javascript"></script>
+    <script src="shared/shiny.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="shared/shiny.css"/>
+		
+    <title>Tempterpolation</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 1;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+		margin: 1cm 1cm 1cm 1cm;
+      }
+    </style>
+  </head>
+   
+  <body>
+    <h1>Tempterpolation</h1>
+	
+	<pre id="predictedTemp" class="shiny-text-output"></pre>
+
+    <div id="map"></div>
+    <script>
+  function initMap() {
+	  
+	  latLng = {lat: 39.081680, lng: -105.437608 };
+	  
+	  var map = new google.maps.Map(document.getElementById('map'), {
+	      zoom: 7,
+	      center: latLng,
+		  mapTypeId: 'terrain'
+	    });
+		
+		var elevator = new google.maps.ElevationService;
+		var coordInfoWindow = new google.maps.InfoWindow();
+	
+	    map.addListener('click', function(e) {
+	    	
+			elevator.getElevationForLocations({
+			    'locations': [e.latLng]
+			  }, function(results, status) {
+				    if (status === 'OK') {
+						//elev = results[0].elevation;
+						//coordInfoWindow.setContent('The elevation at this point <br>is ' + results[0].elevation + ' meters.');
+						var elev = 3.28084*results[0].elevation;
+						Shiny.onInputChange("elev", elev);
+						coordInfoWindow.setContent(createInfoWindowContent(e.latLng, elev, map.getZoom()));
+				 	 }
+				 }
+		 	);
+			
+			coordInfoWindow.setPosition(e.latLng);
+            coordInfoWindow.open(map);
+		 
+		 	Shiny.onInputChange("lat", e.latLng.lat());
+			Shiny.onInputChange("long", e.latLng.lng());
+	    });
+	}
+
+    function createInfoWindowContent(latLng, elev, zoom) {
+	//function createInfoWindowContent(latLng, zoom, latSquared) {
+      var scale = 1 << zoom;
+
+      return [
+        'LatLng: ' + latLng,
+		'Elevation: ' + elev
+      ].join('<br>');
+    }
+	  
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCIqMOZz33GxQaClsCPXx7pqPXJY8f5eWo&callback=initMap">
+    </script>
+	
+  </body>
+</html>
